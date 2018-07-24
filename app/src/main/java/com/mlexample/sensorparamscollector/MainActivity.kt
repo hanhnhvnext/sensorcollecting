@@ -7,9 +7,11 @@ import android.content.Intent
 import android.content.ServiceConnection
 import android.content.pm.PackageManager
 import android.os.Binder
+import android.os.Build
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.os.IBinder
+import android.support.annotation.RequiresApi
 import android.widget.Button
 import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_main.*
@@ -29,7 +31,8 @@ class MainActivity : AppCompatActivity() {
         if(service != null && service!!.isServiceRunning()){
             startBtn.setText("Stop Collecting")
         }
-        requestPermission()
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
+            requestPermission()
     }
 
     private fun startSensorService(){
@@ -37,9 +40,8 @@ class MainActivity : AppCompatActivity() {
             bindService(Intent(this, SensorService::class.java), serviceConnection, Context.BIND_AUTO_CREATE)
             startBtn.setText("Stop Collecting")
         } else {
-            stopService(Intent(this, SensorService::class.java))
+            unbindService(serviceConnection)
             startBtn.setText("Start Collecting")
-            service = null
         }
     }
 
@@ -54,6 +56,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.M)
     private fun requestPermission(){
         if(checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED){
             this.requestPermissions(
